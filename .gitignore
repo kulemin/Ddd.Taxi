@@ -1,0 +1,8 @@
+$ cat .gitignore
+*.txt
+*.suo
+*.ide-shm
+*.ide-wal
+FirstLab/bin/
+FirstLab/obj
+.vs/
