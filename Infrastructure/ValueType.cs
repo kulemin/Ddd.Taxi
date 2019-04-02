@@ -7,76 +7,50 @@ using Ddd.Taxi.Domain;
 
 namespace Ddd.Infrastructure
 {
-    /// <summary>
-    /// Базовый класс для всех Value типов.
-    /// </summary>
     public class ValueType<T>
     {
         bool flag = true;
 
-        public bool Equals(PersonName  name)
+        public bool Equals(PersonName name)
         {
-            if (GetType() != typeof(PersonName)) return Equals((object)name);
+            if (GetType() != typeof(PersonName))
+                return Equals((object)name);
             else
-            return name.FirstName.Equals((this as PersonName).FirstName) &&
-                name.LastName.Equals((this as PersonName).LastName);
+                return name.FirstName.Equals((this as PersonName).FirstName) &&
+                        name.LastName.Equals((this as PersonName).LastName);
         }
 
         public override bool Equals(object type)
         {
             if (type == null) flag = false;
             else if (GetType() != type.GetType()) flag = false;
-            else if (!typeof(T).IsSubclassOf(typeof(ValueType<T>)))
-            {
-                if (!type.Equals(this)) flag = false;
-            }
-
+            else if (!typeof(T).IsSubclassOf(typeof(ValueType<T>))) { if (!type.Equals(this)) flag = false; }
             else
             {
-                var a = type.GetType().GetProperties();
-                var b = GetType().GetProperties();
+                var newProps = type.GetType().GetProperties();
+                var curProps = GetType().GetProperties();
 
-                for (int i = 0; i < a.Length; i++)
+                for (int i = 0; i < newProps.Length; i++)
                 {
-                    if ((a[i].GetValue(type) == null) && (b[i].GetValue(this) == null)) continue;
-                    else if ((a[i].GetValue(type) == null) && (b[i].GetValue(this) != null) ||
-                        (a[i].GetValue(type) != null) && (b[i].GetValue(this) == null)) flag = false;
-                    //else if ((a[i].GetValue(type).GetType()).IsSubclassOf(typeof(ValueType<T>))) a[i].Equals(b[i]);
-                    else if (a[i].GetValue(type).GetType().Name == "PersonName")
-                    {
-                        var g = a[i].GetValue(type);
-                        var name = a[i].GetValue(type).GetType().GetProperties();
-                        var l = b[i].GetValue(this);
-                        var currentName = b[i].GetValue(this).GetType().GetProperties();
-                        for (int j = 0; j < name.Length; j++)
-                        {
-                            if ((name[j].GetValue(g) == null) && (currentName[j].GetValue(l) == null)) continue;
-                            else if ((name[j].GetValue(g) == null) && (currentName[j].GetValue(l) != null) ||
-                                (name[j].GetValue(g) != null) && (currentName[j].GetValue(l) == null)) flag = false;
-                            else if (!(name[j].GetValue(g).Equals(currentName[j].GetValue(l)))) flag = false;
-                        }
-                    }
-                    else if (!(a[i].GetValue(type).Equals(b[i].GetValue(this)))) flag = false;
+                    if ((newProps[i].GetValue(type) == null) && (curProps[i].GetValue(this) == null)) continue;
+                    else if ((newProps[i].GetValue(type) == null) && (curProps[i].GetValue(this) != null)
+                        || (newProps[i].GetValue(type) != null) && (curProps[i].GetValue(this) == null)) flag = false;
+                    else if (newProps[i].GetValue(type).GetType().Name == "PersonName")
+                        flag = newProps[i].GetValue(type).Equals(curProps[i].GetValue(this));
+                    else if (!(newProps[i].GetValue(type).Equals(curProps[i].GetValue(this)))) flag = false;
                 }
             }
-
             return flag;
         }
+
         public override int GetHashCode()
         {
-            var t = GetType().GetProperties();
-            int hashCode;
-            unchecked { hashCode = (int)1192343178864; }
-            for (int i = 1; i < t.Length - 1; i++)
+            var properties = this.GetType().GetProperties();
+            var hashCode = 974875401;
+
+            for (int i = 0; i < properties.Length; i++)
             {
-                unchecked
-                {
-                    var w = 0;
-                    if (t[i].GetValue(this) == null)
-                        w = t[i].GetHashCode();
-                    else w = t[i].GetValue(this).GetHashCode();
-                    hashCode += (hashCode * 564366547) ^ (int)Math.Sqrt(w);
-                }
+                unchecked { hashCode = hashCode * -1521134295 + properties[i].GetValue(this).GetHashCode(); }
             }
             return hashCode;
         }
@@ -85,7 +59,7 @@ namespace Ddd.Infrastructure
         {
             StringBuilder value = new StringBuilder();
             value.Append(GetType().Name + "(");
-            var properties = GetType().GetProperties();
+            var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             if (GetType().Name == "Address")
                 for (int i = properties.Length - 1; i >= 0; i--)
                     value.Append(properties[i].Name + ": " + properties[i].GetValue(this) + "; ");
