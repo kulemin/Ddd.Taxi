@@ -2,6 +2,7 @@
 using System.Linq;
 using Ddd.Infrastructure;
 using NUnit.Framework;
+using static Ddd.Taxi.Domain.TaxiApi;
 
 namespace Ddd.Taxi.Domain
 {
